@@ -1,0 +1,8 @@
+.translation img {
+    visibility: hidden;
+}
+
+.sentenceBreaker {
+  word-break: break-all;
+  visibility: hidden;
+}
