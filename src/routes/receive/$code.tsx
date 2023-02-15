@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { loadBook } from "./LandingPage";
+import { loadBook } from "..";
 
 export function LoadFile() {
   const params = useParams<{ code: string }>();

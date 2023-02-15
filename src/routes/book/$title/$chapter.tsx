@@ -1,13 +1,13 @@
 import { useParams } from "react-router-dom";
-import { convertSectionNodeToLL } from "./convertFB2SectionToLL";
-import { FictionBookNode, SectionNode } from "./fb2-nodeObject";
-import { getNestedValue } from "./fb2utils";
-import { RenderLLContentDocument } from "./LLDocument";
-import { getTitleTexts, useFB2Book } from "./useFBBook";
+import { convertSectionNodeToLL } from "../../../utils/convertFB2SectionToLL";
+import { FictionBookNode, SectionNode } from "../../../utils/fb2-nodeObject";
+import { getNestedValue } from "../../../utils/fb2utils";
+import { RenderLLContentDocument } from "../../../components/LLRenderer/LLDocument";
+import { getTitleTexts, useFB2Book } from "../../../useFBBook";
 
 export function BookChapter() {
-  let params = useParams<{ bookTitle: string; chapterString: string }>();
-  const fb2Book = useFB2Book(params.bookTitle!);
+  let params = useParams<{ title: string; chapterString: string }>();
+  const fb2Book = useFB2Book(params.title!);
 
   if (fb2Book.fb2BookLoadingState === "loading") {
     return <div>Loading...</div>;

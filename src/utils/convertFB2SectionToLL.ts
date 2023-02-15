@@ -15,8 +15,23 @@ import {
   LLBlockLeafCite,
   LLContentDocument,
   LLInline,
-} from "./custom-type";
+} from "../LL-types";
 import { getNestedTextContent } from "./fb2utils";
+
+export function convertSectionNodeToLL({ sectionNode, binaryNodes }: {
+  sectionNode: SectionNode;
+  binaryNodes: BinaryNode[];
+}): LLContentDocument {
+  const value = sectionNode.value.map((subNode) =>
+    convertNodeValueToLLValue({ node: subNode, binaryNodes })
+  );
+
+  return {
+    group: "block-branch",
+    type: "document",
+    value,
+  };
+}
 
 function convertNodeValueToLLValue(
   { node, binaryNodes }: {
@@ -95,21 +110,6 @@ function convertNodeValueToLLValue(
       // @ts-ignore
       throw new Error(`Unsupported node kind: ${node.kind}`);
   }
-}
-
-export function convertSectionNodeToLL({ sectionNode, binaryNodes }: {
-  sectionNode: SectionNode;
-  binaryNodes: BinaryNode[];
-}): LLContentDocument {
-  const value = sectionNode.value.map((subNode) =>
-    convertNodeValueToLLValue({ node: subNode, binaryNodes })
-  );
-
-  return {
-    group: "block-branch",
-    type: "document",
-    value,
-  };
 }
 
 function convertPNodeToLL(

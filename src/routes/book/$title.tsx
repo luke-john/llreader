@@ -1,10 +1,10 @@
 import { Link, useParams } from "react-router-dom";
 
-import { getTableOfContents, useFB2Book } from "./useFBBook";
+import { getTableOfContents, useFB2Book } from "../../useFBBook";
 
 export function BookPage() {
-  let params = useParams<{ bookTitle: string }>();
-  const fb2Book = useFB2Book(params.bookTitle!);
+  let params = useParams<{ title: string }>();
+  const fb2Book = useFB2Book(params.title!);
 
   if (fb2Book.bookStoreState.loadingState === "loading") {
     return <div>Loading...</div>;
@@ -29,7 +29,7 @@ export function BookPage() {
             return (
               <li key={index}>
                 <Link
-                  to={`/books/${params.bookTitle!}/${index}-${
+                  to={`/books/${params.title!}/${index}-${
                     section.titleTexts
                       ? section.titleTexts.join("-")
                       : "untitled"

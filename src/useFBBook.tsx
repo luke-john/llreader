@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { FictionBookNode, SectionNode, TitleNode } from "./fb2-nodeObject";
-import { getNestedTextContent, getNestedValue, loadFB2File } from "./fb2utils";
+import { FictionBookNode, SectionNode } from "./utils/fb2-nodeObject";
+import {
+  getNestedTextContent,
+  getNestedValue,
+  loadFB2File,
+} from "./utils/fb2utils";
 import { useBookStoreState } from "./library";
-import { elementToNodeObject } from "./xmlToJS";
+import { elementToNodeObject } from "./utils/xmlToJS";
 
 export function useFB2Book(bookTitle: string) {
   const bookStoreState = useBookStoreState();
@@ -21,10 +25,6 @@ export function useFB2Book(bookTitle: string) {
           fb2File.children[0],
         ) as any as FictionBookNode;
         setFB2Book(nodeObject);
-        const resultingValue = getNestedValue(nodeObject, [
-          { kind: "body", position: 0 },
-          { kind: "section", position: "*" },
-        ]);
       });
   }, [book]);
 

@@ -1,4 +1,4 @@
-import { LLContentDocument } from "./custom-type";
+import { LLContentDocument } from "./LL-types";
 
 export const document = {
   group: "block-branch",

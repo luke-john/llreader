@@ -1,4 +1,130 @@
-import { useCallback, useEffect } from "react";
+import { Fragment, useCallback, useEffect, useRef } from "react";
+import { LLInline } from "../../LL-types";
+
+import "./LLInlineGroup.styles.css";
+
+export function RenderInlineGroup(
+  { inlines, Tag, extraPadding = 0 }: {
+    inlines: LLInline[];
+    Tag: string;
+    /** TODO cleanup positioning system */
+    extraPadding?: number;
+  },
+) {
+  // the use of HTMLDivElement is to avoid typescript complaints,
+  // in practice it could be any HTMLElement
+  const domRef = useRef<HTMLDivElement>(null);
+  useTranslationPadding(domRef);
+  const BetterTypedTag = Tag as "div";
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "504px",
+        lineHeight: "2.5",
+        padding: 0,
+      }}
+      ref={domRef}
+    >
+      <div style={{ position: "relative", zIndex: 1 }} data-translation={false}>
+        <BetterTypedTag>
+          {inlines.map((inlineNode, i) => (
+            <RenderLLInline key={i} content={inlineNode} translation={false} />
+          ))}
+        </BetterTypedTag>
+      </div>
+      <div
+        className="translation"
+        style={{
+          position: "absolute",
+          top: `${extraPadding}px`,
+          color: "rgb(227, 222, 222)",
+          zIndex: 0,
+          // visibility: "hidden",
+        }}
+      >
+        <BetterTypedTag ref={domRef}>
+          {inlines.map((inlineNode, i) => (
+            <RenderLLInline key={i} content={inlineNode} translation={true} />
+          ))}
+        </BetterTypedTag>
+      </div>
+    </div>
+  );
+}
+
+function RenderLLInline(
+  { content, translation }: { content: LLInline; translation: boolean },
+) {
+  switch (content.type) {
+    case "text":
+      return <RenderLLText text={content.value} translation={translation} />;
+    case "link":
+      return (
+        <a href={content.destination}>
+          {content.value.map((inlineNode, i) => (
+            <RenderLLInline
+              key={i}
+              content={inlineNode}
+              translation={translation}
+            />
+          ))}
+        </a>
+      );
+    case "image":
+      return (
+        <>
+          <br />
+          <img src={content.src} />
+          <br />
+        </>
+      );
+    case "line-break":
+      return <br />;
+
+    default:
+      throw new Error(`Unknown inline type: ${
+        // @ts-ignore
+        content.type}`);
+  }
+}
+
+function RenderLLText(
+  { text, translation }: { text: string; translation: boolean },
+) {
+  const sentenceEndMatches = [...text.matchAll(/(\. |— |\? |! |: |, )/gm)];
+  let texts: string[] = [];
+
+  if (sentenceEndMatches.length === 0) {
+    texts.push(text);
+  } else {
+    let completedUntil = 0;
+    for (const sentenceEndMatch of sentenceEndMatches) {
+      texts.push(text.substring(completedUntil, sentenceEndMatch.index! + 2));
+      completedUntil = sentenceEndMatch.index! + 2;
+    }
+    texts.push(text.substring(completedUntil));
+  }
+
+  texts = texts.filter((text) => text.trim() !== "");
+
+  return (
+    <>
+      {texts.map((text, index) => (
+        <Fragment key={index}>
+          <span
+            data-translation={translation}
+            className={translation ? "" : "notranslate"}
+          >
+            {text}
+          </span>
+          <span className={"sentenceBreaker"}></span>
+        </Fragment>
+      ))}
+    </>
+  );
+}
 
 export const useTranslationPadding = (
   domRef: React.RefObject<HTMLDivElement>,
