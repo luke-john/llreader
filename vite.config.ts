@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/llreader/",
   plugins: [
     react(),
     VitePWA({
@@ -16,6 +17,7 @@ export default defineConfig({
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.png"],
       manifest: {
+        display_override: ["browser", "minimal-ui", "standalone", "fullscreen"],
         name: "Language Learner Reader",
         short_name: "LLReader",
         description: "A reading tool for language learners",
