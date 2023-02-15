@@ -1,27 +1,33 @@
-import { Link, useParams } from "react-router-dom";
+import {
+  Link,
+  LoaderFunction,
+  useLoaderData,
+  useParams,
+} from "react-router-dom";
+import { bookStore } from "../../library";
 
-import { getTableOfContents, useFB2Book } from "../../useFBBook";
+import { getBook, getFB2Book, getTableOfContents } from "../../useFBBook";
+
+export const loader = async function loader(args) {
+  const params = args.params as { title: string };
+  await bookStore.loadData();
+  const book = await getBook({ title: params.title });
+  const fb2Book = await getFB2Book({ file: book.file });
+  const tableOfContents = getTableOfContents(fb2Book);
+
+  return { book, tableOfContents };
+} satisfies LoaderFunction;
 
 export function BookPage() {
-  let params = useParams<{ title: string }>();
-  const fb2Book = useFB2Book(params.title!);
-
-  if (fb2Book.bookStoreState.loadingState === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (!fb2Book.book) {
-    throw new Error("missing book");
-  }
-
-  const tableOfContents = fb2Book.fb2Book
-    ? getTableOfContents(fb2Book.fb2Book)
-    : undefined;
+  const params = useParams() as { title: string };
+  const { book, tableOfContents } = useLoaderData() as Awaited<
+    ReturnType<typeof loader>
+  >;
 
   return (
     <div>
-      <h1>{fb2Book.book.title}</h1>
-      <h2>{fb2Book.book.author}</h2>
+      <h1>{book.title}</h1>
+      <h2>{book.author}</h2>
 
       <ul>
         {tableOfContents

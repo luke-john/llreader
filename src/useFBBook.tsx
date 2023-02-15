@@ -5,44 +5,32 @@ import {
   getNestedValue,
   loadFB2File,
 } from "./utils/fb2utils";
-import { useBookStoreState } from "./library";
+import { bookStore } from "./library";
 import { elementToNodeObject } from "./utils/xmlToJS";
 
-export function useFB2Book(bookTitle: string) {
-  const bookStoreState = useBookStoreState();
+export async function getBook({ title }: { title: string }) {
+  await bookStore.loadData();
+  const bookStoreState = bookStore.getState();
+
   const book = bookStoreState.books.find((book) => {
-    return book.title === bookTitle;
-  });
-  const [fb2Book, setFB2Book] = useState<FictionBookNode>();
+    return book.title === title;
+  })!;
 
-  useEffect(() => {
-    if (!book) {
-      return;
-    }
-    loadFB2File(book.file)
-      .then((fb2File) => {
-        const nodeObject = elementToNodeObject(
-          fb2File.children[0],
-        ) as any as FictionBookNode;
-        setFB2Book(nodeObject);
-      });
-  }, [book]);
-
-  if (!fb2Book) {
-    return {
-      bookStoreState,
-      book,
-      fb2BookLoadingState: "loading" as const,
-      fb2Book: undefined,
-    };
+  if (book.type !== "fb2") {
+    throw new Error("Only FB2 books are supported at this time");
   }
 
-  return {
-    bookStoreState,
-    book,
-    fb2BookLoadingState: "loaded" as const,
-    fb2Book,
-  };
+  return book;
+}
+
+export async function getFB2Book({ file }: { file: File }) {
+  const fb2BookDocument = await loadFB2File(file);
+
+  const fb2BookObject = elementToNodeObject(
+    fb2BookDocument.children[0],
+  ) as any as FictionBookNode;
+
+  return fb2BookObject;
 }
 
 type TableOfContentsEntry = {

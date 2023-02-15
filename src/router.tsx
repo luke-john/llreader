@@ -1,15 +1,24 @@
-import { createHashRouter, RouterProvider } from "react-router-dom";
-import { BookChapter } from "./routes/book/$title/$chapter";
-import { BookPage } from "./routes/book/$title";
-import { LandingPage } from "./routes";
+import {
+  createHashRouter,
+  RouteObject,
+  RouterProvider,
+} from "react-router-dom";
+import {
+  BookChapter,
+  loader as bookChapterLoader,
+} from "./routes/book/$title/$chapter";
+import { BookPage, loader as bookPageLoader } from "./routes/book/$title";
+import { LandingPage, loader } from "./routes";
 import { LoadFile } from "./routes/receive/$code";
 
 const routes = [
   {
+    loader: loader,
     path: "/",
     element: <LandingPage />,
   },
   {
+    loader: bookPageLoader,
     path: "/books/:title",
     element: <BookPage />,
   },
@@ -18,6 +27,7 @@ const routes = [
     element: <LoadFile />,
   },
   {
+    loader: bookChapterLoader,
     /**
      * Chapter string takes format
      * "{chapterIndex}-{chapterName}"
@@ -25,6 +35,8 @@ const routes = [
     path: "/books/:title/:chapterString",
     element: <BookChapter />,
   },
-];
+] satisfies RouteObject[];
 
-export const router = createHashRouter(routes);
+export const router = createHashRouter(routes, {
+  basename: "/",
+});

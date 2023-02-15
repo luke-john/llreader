@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 
 import {
   cleanTextContent,
@@ -8,7 +8,14 @@ import {
 
 import { Book, bookStore, useBookStoreState } from "../library";
 
+export async function loader() {
+  await bookStore.loadData();
+
+  return bookStore;
+}
+
 export function LandingPage() {
+  useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const bookStoreState = useBookStoreState();
 
   return (

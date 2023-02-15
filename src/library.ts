@@ -35,6 +35,9 @@ class BookStore {
   }
 
   async loadData() {
+    if (this.loadingState === "loaded") {
+      return;
+    }
     try {
       this.books = await get("books") || this.books;
       this.loadingState = "loaded";
