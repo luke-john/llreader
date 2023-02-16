@@ -4,9 +4,15 @@ import {
   useLoaderData,
   useParams,
 } from "react-router-dom";
-import { bookStore } from "../../library";
+import { Main } from "../components/Layout/Main";
+import { bookStore } from "../library";
 
-import { getBook, getFB2Book, getTableOfContents } from "../../useFBBook";
+import {
+  getBook,
+  getChapterLink,
+  getFB2Book,
+  getTableOfContents,
+} from "../useFBBook";
 
 export const loader = async function loader(args) {
   const params = args.params as { title: string };
@@ -25,30 +31,31 @@ export function BookPage() {
   >;
 
   return (
-    <div>
+    <Main>
       <h1>{book.title}</h1>
       <h2>{book.author}</h2>
 
       <ul>
         {tableOfContents
-          ? tableOfContents.map((section, index) => {
+          ? tableOfContents.map((section, chapterIndex) => {
             return (
-              <li key={index}>
+              <li key={chapterIndex}>
                 <Link
-                  to={`/books/${params.title!}/${index}-${
-                    section.titleTexts
-                      ? section.titleTexts.join("-")
-                      : "untitled"
+                  to={`/books/${params.title!}/${
+                    getChapterLink({
+                      chapterIndex: chapterIndex + 1,
+                      chapterTitleText: section.titleTexts?.join("-"),
+                    })
                   }`}
                 >
-                  <RenderTitle key={index} value={section.titleTexts} />
+                  <RenderTitle key={chapterIndex} value={section.titleTexts} />
                 </Link>
               </li>
             );
           })
           : null}
       </ul>
-    </div>
+    </Main>
   );
 }
 

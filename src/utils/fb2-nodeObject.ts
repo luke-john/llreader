@@ -280,15 +280,28 @@ export type CiteNode = {
   value: (Empty_lineNode | PNode)[];
 };
 
+export type PNodeValue =
+  | StrongNode
+  | TextNode
+  | ImageNode
+  | StyleNode
+  | EmphasisNode;
+
 export type PNode = {
   type: "node";
   kind: "p";
-  value: (StrongNode | TextNode | ImageNode | StyleNode)[];
+  value: PNodeValue[];
 };
 
 export type StrongNode = {
   type: "node";
   kind: "strong";
+  value: TextNode[];
+};
+
+export type EmphasisNode = {
+  type: "node";
+  kind: "emphasis";
   value: TextNode[];
 };
 
@@ -334,5 +347,6 @@ export type FictionBookNodeObject =
   | Empty_lineNode
   | PNode
   | StrongNode
+  | EmphasisNode
   | CiteNode
   | TextNode;

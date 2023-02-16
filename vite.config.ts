@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 
+import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
 
@@ -7,6 +8,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "/llreader/",
   plugins: [
+    vanillaExtractPlugin(),
     react(),
     VitePWA({
       injectRegister: "auto",

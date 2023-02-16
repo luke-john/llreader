@@ -1,4 +1,4 @@
-import { Fragment, useRef } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 
 import { RenderInlineGroup } from "./LLInlineGroup";
 import {
@@ -6,10 +6,13 @@ import {
   LLBlockLeafLLBlockBranchContentExpandTitle,
   LLContentDocument,
 } from "../../LL-types";
+import { heading, paragraph } from "./LLDocument.css";
 
 export function RenderLLContentDocument({
   content,
-}: { content: LLContentDocument }) {
+  baseHeading = 1,
+  changeKey,
+}: { content: LLContentDocument; baseHeading?: number; changeKey: string }) {
   return (
     <div
       style={{
@@ -20,7 +23,12 @@ export function RenderLLContentDocument({
       }}
     >
       {content.value.map((blockCommon, i) => (
-        <RenderLLBlockCommon key={i} content={blockCommon} />
+        <RenderLLBlockCommon
+          key={i}
+          content={blockCommon}
+          baseHeading={baseHeading}
+          changeKey={changeKey}
+        />
       ))}
     </div>
   );
@@ -28,7 +36,9 @@ export function RenderLLContentDocument({
 
 function RenderLLBlockCommon({
   content,
-}: { content: LLBlockCommon }) {
+  baseHeading,
+  changeKey,
+}: { content: LLBlockCommon; baseHeading: number; changeKey: string }) {
   switch (content.group) {
     case "block-branch":
       switch (content.type) {
@@ -37,19 +47,32 @@ function RenderLLBlockCommon({
             <div>
               <RenderLLBlockLeafLLBlockBranchContentExpandTitle
                 content={content.value[0]}
+                changeKey={changeKey}
               />
 
               {(content.value.slice(1) as LLBlockCommon[]).map((
                 blockNode,
                 i,
-              ) => <RenderLLBlockCommon key={i} content={blockNode} />)}
+              ) => (
+                <RenderLLBlockCommon
+                  key={i}
+                  content={blockNode}
+                  baseHeading={baseHeading}
+                  changeKey={changeKey}
+                />
+              ))}
             </div>
           );
         case "quote":
           return (
             <blockquote>
               {content.value.map((inlineNode, i) => (
-                <RenderLLBlockCommon key={i} content={inlineNode} />
+                <RenderLLBlockCommon
+                  key={i}
+                  content={inlineNode}
+                  baseHeading={baseHeading}
+                  changeKey={changeKey}
+                />
               ))}
             </blockquote>
           );
@@ -71,20 +94,28 @@ function RenderLLBlockCommon({
         case "empty-line":
           return <br />;
         case "heading":
-          const Tag = `h${content.attributes.level}` as "h1";
+          const Tag = `h${content.attributes.level + baseHeading}` as "h1";
 
           return (
             <div style={{ fontSize: "0.6rem" }}>
               <RenderInlineGroup
                 inlines={content.value}
                 Tag={Tag}
-                extraPadding={8}
+                tagClassName={heading}
+                translationKey={changeKey}
               />
             </div>
           );
 
         case "paragraph":
-          return <RenderInlineGroup inlines={content.value} Tag={"p"} />;
+          return (
+            <RenderInlineGroup
+              inlines={content.value}
+              Tag={"p"}
+              tagClassName={paragraph}
+              translationKey={changeKey}
+            />
+          );
 
         default:
           throw new Error(`Unknown block-leaf type: ${
@@ -100,6 +131,13 @@ function RenderLLBlockCommon({
 
 function RenderLLBlockLeafLLBlockBranchContentExpandTitle({
   content,
-}: { content: LLBlockLeafLLBlockBranchContentExpandTitle }) {
-  return <RenderInlineGroup inlines={content.value} Tag={"h3"} />;
+  changeKey,
+}: { content: LLBlockLeafLLBlockBranchContentExpandTitle; changeKey: string }) {
+  return (
+    <RenderInlineGroup
+      inlines={content.value}
+      Tag={"h3"}
+      translationKey={changeKey}
+    />
+  );
 }

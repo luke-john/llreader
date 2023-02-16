@@ -1,14 +1,29 @@
 import { Fragment, useCallback, useEffect, useRef } from "react";
-import { LLInline } from "../../LL-types";
+import { LLInline, LLInlineTextMark } from "../../LL-types";
+import { cx } from "../styles";
 
 import "./LLInlineGroup.styles.css";
 
+/** Function which takes uri component and returns a valid css classname */
+function uriToClassName(uri: string) {
+  const className = uri
+    .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace any non-alphanumeric characters with an underscore
+    .replace(/_{2,}/g, "_") // Replace consecutive underscores with a single underscore
+    .replace(/^_|_$/g, "") // Remove leading or trailing underscores
+    .toLowerCase(); // Convert to lowercase
+
+  return `chapter-${className}`;
+}
+
 export function RenderInlineGroup(
-  { inlines, Tag, extraPadding = 0 }: {
+  { inlines, Tag, extraPadding = 0, tagClassName, tagStyle, translationKey }: {
     inlines: LLInline[];
     Tag: string;
+    tagClassName?: string;
+    tagStyle?: React.CSSProperties;
     /** TODO cleanup positioning system */
     extraPadding?: number;
+    translationKey: string;
   },
 ) {
   // the use of HTMLDivElement is to avoid typescript complaints,
@@ -21,21 +36,21 @@ export function RenderInlineGroup(
     <div
       style={{
         position: "relative",
-        width: "504px",
         lineHeight: "2.5",
         padding: 0,
       }}
       ref={domRef}
     >
       <div style={{ position: "relative", zIndex: 1 }} data-translation={false}>
-        <BetterTypedTag>
+        <BetterTypedTag className={tagClassName} style={tagStyle}>
           {inlines.map((inlineNode, i) => (
             <RenderLLInline key={i} content={inlineNode} translation={false} />
           ))}
         </BetterTypedTag>
       </div>
       <div
-        className="translation"
+        key={translationKey}
+        className={cx("translation", uriToClassName(translationKey))}
         style={{
           position: "absolute",
           top: `${extraPadding}px`,
@@ -44,7 +59,11 @@ export function RenderInlineGroup(
           // visibility: "hidden",
         }}
       >
-        <BetterTypedTag ref={domRef}>
+        <BetterTypedTag
+          ref={domRef}
+          className={cx(tagClassName, "tag-translation")}
+          style={tagStyle}
+        >
           {inlines.map((inlineNode, i) => (
             <RenderLLInline key={i} content={inlineNode} translation={true} />
           ))}
@@ -59,7 +78,13 @@ function RenderLLInline(
 ) {
   switch (content.type) {
     case "text":
-      return <RenderLLText text={content.value} translation={translation} />;
+      return (
+        <RenderLLText
+          text={content.value}
+          marks={content.marks}
+          translation={translation}
+        />
+      );
     case "link":
       return (
         <a href={content.destination}>
@@ -74,11 +99,9 @@ function RenderLLInline(
       );
     case "image":
       return (
-        <>
-          <br />
-          <img src={content.src} />
-          <br />
-        </>
+        <div>
+          <img src={content.src} style={{ display: "block" }} />
+        </div>
       );
     case "line-break":
       return <br />;
@@ -90,8 +113,14 @@ function RenderLLInline(
   }
 }
 
+import { textStyle } from "./LLInlineGroup.css";
+
 function RenderLLText(
-  { text, translation }: { text: string; translation: boolean },
+  { text, translation, marks }: {
+    text: string;
+    translation: boolean;
+    marks?: LLInlineTextMark[];
+  },
 ) {
   const sentenceEndMatches = [...text.matchAll(/(\. |— |\? |! |: |, )/gm)];
   let texts: string[] = [];
@@ -109,13 +138,21 @@ function RenderLLText(
 
   texts = texts.filter((text) => text.trim() !== "");
 
+  const markClassNames = marks?.map(({ type }) => {
+    return type;
+  }) || [];
+
   return (
     <>
       {texts.map((text, index) => (
         <Fragment key={index}>
           <span
             data-translation={translation}
-            className={translation ? "" : "notranslate"}
+            className={cx(
+              translation ? "" : "notranslate",
+              textStyle,
+              ...markClassNames,
+            )}
           >
             {text}
           </span>

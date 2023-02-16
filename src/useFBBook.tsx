@@ -7,6 +7,7 @@ import {
 } from "./utils/fb2utils";
 import { bookStore } from "./library";
 import { elementToNodeObject } from "./utils/xmlToJS";
+import { convertSectionNodeToLL } from "./utils/convertFB2SectionToLL";
 
 export async function getBook({ title }: { title: string }) {
   await bookStore.loadData();
@@ -78,4 +79,61 @@ export function getTitleTexts(sectionNode: SectionNode, index: number) {
       .filter((title) => title !== undefined) as string[]).flat();
 
   return titleTexts;
+}
+
+export function getChapterLink(
+  { chapterIndex, chapterTitleText }: {
+    chapterIndex?: number;
+    chapterTitleText?: string;
+  },
+) {
+  if (chapterIndex === undefined) {
+    return undefined;
+  }
+
+  return `${chapterIndex}-${chapterTitleText || "untitled"}`;
+}
+
+export function getChapterLinkFromChapter(
+  { chapterIndex, fb2Book }: {
+    chapterIndex: number;
+    fb2Book: FictionBookNode;
+  },
+) {
+  const chapter = getFB2BookChapter({
+    fb2Book,
+    chapterIndex,
+  });
+  if (!chapter) {
+    return undefined;
+  }
+  return getChapterLink({
+    chapterIndex,
+    chapterTitleText: chapter.titleTexts?.join("-"),
+  });
+}
+
+export function getFB2BookChapter(
+  { fb2Book, chapterIndex }: { fb2Book: FictionBookNode; chapterIndex: number },
+) {
+  const sectionNode = getNestedValue(fb2Book, [
+    { kind: "body", position: 0 },
+    { kind: "section", position: chapterIndex - 1 },
+  ]);
+
+  if (!sectionNode) {
+    return undefined;
+  }
+
+  const binaryNodes = getNestedValue(fb2Book, [
+    { kind: "binary", position: "*" },
+  ]) || [];
+
+  const titleTexts = getTitleTexts(sectionNode, chapterIndex);
+  const llDocument = convertSectionNodeToLL({ sectionNode, binaryNodes });
+
+  return {
+    titleTexts,
+    llDocument,
+  };
 }

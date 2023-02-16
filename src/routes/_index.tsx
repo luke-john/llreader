@@ -7,6 +7,7 @@ import {
 } from "../utils/fb2utils";
 
 import { Book, bookStore, useBookStoreState } from "../library";
+import { Main } from "../components/Layout/Main";
 
 export async function loader() {
   await bookStore.loadData();
@@ -19,7 +20,7 @@ export function LandingPage() {
   const bookStoreState = useBookStoreState();
 
   return (
-    <div className="App">
+    <Main>
       <h1>Language Learner Reader</h1>
       <h2>Library</h2>
       <ul>
@@ -30,7 +31,7 @@ export function LandingPage() {
           <AddBook />
         </li>
       </ul>
-    </div>
+    </Main>
   );
 }
 

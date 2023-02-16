@@ -4,6 +4,7 @@ import {
   Empty_lineNode,
   ImageNode,
   PNode,
+  PNodeValue,
   SectionNode,
   StrongNode,
   StyleNode,
@@ -15,6 +16,7 @@ import {
   LLBlockLeafCite,
   LLContentDocument,
   LLInline,
+  LLInlineTextMark,
 } from "../LL-types";
 import { getNestedTextContent } from "./fb2utils";
 
@@ -35,7 +37,7 @@ export function convertSectionNodeToLL({ sectionNode, binaryNodes }: {
 
 function convertNodeValueToLLValue(
   { node, binaryNodes }: {
-    node: Empty_lineNode | PNode | CiteNode | TitleNode;
+    node: Empty_lineNode | PNode | CiteNode | TitleNode | ImageNode;
     binaryNodes: BinaryNode[];
   },
 ): LLBlockCommon {
@@ -106,7 +108,18 @@ function convertNodeValueToLLValue(
           return convertNodeValueToLLValue({ node, binaryNodes });
         }),
       } satisfies LLBlockLeafCite;
+    case "image":
+      return {
+        group: "block-leaf" as const,
+        type: "image" as const,
+        src: getImageSrc({
+          imageId: node.attributes["l:href"],
+          binaryNodes,
+        }) || "failed",
+      };
+
     default:
+      console.warn(node);
       // @ts-ignore
       throw new Error(`Unsupported node kind: ${node.kind}`);
   }
@@ -142,7 +155,7 @@ function getImageSrc(
 
 function convertPNodeValueToLL(
   { node, binaryNodes }: {
-    node: StrongNode | TextNode | ImageNode | StyleNode;
+    node: PNodeValue;
     binaryNodes: BinaryNode[];
   },
 ): LLInline[] {
@@ -151,7 +164,10 @@ function convertPNodeValueToLL(
       switch (node.kind) {
         case "strong":
           return node.value.reduce(
-            (acc, textNode) => acc.concat(convertTextNodeToLL(textNode)),
+            (acc, textNode) =>
+              acc.concat(
+                convertTextNodeToLL(textNode, { marks: [{ type: "strong" }] }),
+              ),
             [] as LLInline[],
           );
         case "image":
@@ -165,19 +181,33 @@ function convertPNodeValueToLL(
             type: "image" as const,
             src: imageSrc,
           }];
-
+        case "emphasis":
+          return node.value.reduce(
+            (acc, textNode) =>
+              acc.concat(
+                convertTextNodeToLL(textNode, {
+                  marks: [{ type: "emphasis" }],
+                }),
+              ),
+            [] as LLInline[],
+          );
         default:
+          console.warn(node);
           throw new Error(`Unsupported node kind: ${node.kind}`);
       }
     case "text":
-      return convertTextNodeToLL(node);
+      return convertTextNodeToLL(node, { marks: [] });
     default:
+      console.warn(node);
       // @ts-ignore
       throw new Error(`Unsupported node type: ${node.type}`);
   }
 }
 
-function convertTextNodeToLL(node: TextNode): LLInline[] {
+function convertTextNodeToLL(
+  node: TextNode,
+  { marks }: { marks: LLInlineTextMark[] },
+): LLInline[] {
   const text = node.characters;
   const lines = text.split("\n");
 
@@ -186,6 +216,7 @@ function convertTextNodeToLL(node: TextNode): LLInline[] {
       return acc.concat({
         group: "inline-leaf",
         type: "text",
+        marks,
         value: line,
       });
     }
@@ -196,6 +227,7 @@ function convertTextNodeToLL(node: TextNode): LLInline[] {
     }).concat({
       group: "inline-leaf",
       type: "text",
+      marks,
       value: line,
     });
   }, [] as LLInline[]);
