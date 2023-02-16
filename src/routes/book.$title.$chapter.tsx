@@ -1,18 +1,15 @@
 import { LoaderFunction, useLoaderData, useParams } from "react-router-dom";
-import { convertSectionNodeToLL } from "../utils/convertFB2SectionToLL";
-import { FictionBookNode, SectionNode } from "../utils/fb2-nodeObject";
-import { getNestedValue } from "../utils/fb2utils";
+
 import { RenderLLContentDocument } from "../components/LLRenderer/LLDocument";
 import {
   getBook,
   getChapterLinkFromChapter,
   getFB2Book,
   getFB2BookChapter,
-  getTitleTexts,
-} from "../useFBBook";
-import { bookStore } from "../library";
+} from "../utils/useFBBook";
+import { bookStore } from "../bookstore/library";
 import { Main } from "../components/Layout/Main";
-import { ChapterHeader } from "../components/Chapter/Header";
+
 import { ChapterPagination } from "../components/Chapter/Pagination";
 import { ChapterNavbar } from "../components/Chapter/Navbar";
 
@@ -76,14 +73,16 @@ export function BookChapter() {
   );
 
   return (
-    <Main>
+    <>
       <ChapterNavbar bookTitle={params.title} />
-      {pagination}
-      <RenderLLContentDocument
-        content={chapter.llDocument}
-        changeKey={chapterIndexString}
-      />
-      {pagination}
-    </Main>
+      <Main>
+        {pagination}
+        <RenderLLContentDocument
+          content={chapter.llDocument}
+          changeKey={chapterIndexString}
+        />
+        {pagination}
+      </Main>
+    </>
   );
 }

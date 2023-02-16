@@ -1,13 +1,9 @@
 import { Link, useLoaderData } from "react-router-dom";
 
-import {
-  cleanTextContent,
-  getTextContent,
-  loadFB2File,
-} from "../utils/fb2utils";
-
-import { Book, bookStore, useBookStoreState } from "../library";
 import { Main } from "../components/Layout/Main";
+
+import { Book, bookStore, useBookStoreState } from "../bookstore/library";
+import { loadBook } from "../bookstore/addBook";
 
 export async function loader() {
   await bookStore.loadData();
@@ -78,23 +74,8 @@ function AddBook() {
     if (!(file instanceof File)) {
       throw new Error("File is not a file");
     }
-    if (!file.name.endsWith(".fb2")) {
-      throw new Error("Only FB2 files are supported");
-    }
-    const fb2XML = await loadFB2File(file);
 
-    const bookTitle = getTextContent(fb2XML, "book-title");
-    const author = cleanTextContent(getTextContent(fb2XML, "author"));
-
-    bookStore.addBook({
-      title: bookTitle || file.name,
-      type: "fb2",
-      author: author,
-      file,
-      currentPosition: {
-        chapter: 0,
-      },
-    });
+    loadBook({ format: await getFileType(file), file });
   }
   return (
     <form onSubmit={handleSumbit}>
@@ -104,27 +85,15 @@ function AddBook() {
   );
 }
 
-export async function loadBook(file: File) {
-  const fb2XML = await loadFB2File(file);
+async function getFileType(file: File) {
+  if (file.type) {
+    return file.type;
+  }
+  const fallbackType = file.name.split(".").pop();
 
-  const bookTitle = getTextContent(fb2XML, "book-title")!;
-  const author = cleanTextContent(getTextContent(fb2XML, "author"));
-
-  const alreadyHaveBook = bookStore.getState().books.some((book) =>
-    bookTitle === book.title && author === book.author
-  );
-
-  if (alreadyHaveBook) {
-    throw new Error("You already have this book.");
+  if (fallbackType) {
+    return fallbackType;
   }
 
-  bookStore.addBook({
-    title: bookTitle,
-    type: "fb2",
-    author: author,
-    file,
-    currentPosition: {
-      chapter: 0,
-    },
-  });
+  throw new Error("Could not determine file type");
 }

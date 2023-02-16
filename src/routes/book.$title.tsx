@@ -5,57 +5,58 @@ import {
   useParams,
 } from "react-router-dom";
 import { Main } from "../components/Layout/Main";
-import { bookStore } from "../library";
 
-import {
-  getBook,
-  getChapterLink,
-  getFB2Book,
-  getTableOfContents,
-} from "../useFBBook";
+import { bookStore } from "../bookstore/library";
+import { getBookContent } from "../bookstore/getBookContent";
+import { ChapterNavbar } from "../components/Book/Navbar";
 
 export const loader = async function loader(args) {
   const params = args.params as { title: string };
   await bookStore.loadData();
-  const book = await getBook({ title: params.title });
-  const fb2Book = await getFB2Book({ file: book.file });
-  const tableOfContents = getTableOfContents(fb2Book);
+  const { book, content } = await getBookContent({
+    title: params.title,
+  });
 
-  return { book, tableOfContents };
+  return { book, content };
 } satisfies LoaderFunction;
 
+export type TableOfContentsEntry = {
+  titleTexts: string[] | undefined;
+  index: number;
+  words: number;
+  link: string;
+};
+
 export function BookPage() {
-  const params = useParams() as { title: string };
-  const { book, tableOfContents } = useLoaderData() as Awaited<
+  const { book, content } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
   >;
 
   return (
-    <Main>
-      <h1>{book.title}</h1>
-      <h2>{book.author}</h2>
+    <>
+      <ChapterNavbar bookTitle={book.title} />
+      <Main>
+        <h1>{book.title}</h1>
+        <h2>{book.author}</h2>
 
-      <ul>
-        {tableOfContents
-          ? tableOfContents.map((section, chapterIndex) => {
-            return (
-              <li key={chapterIndex}>
-                <Link
-                  to={`/books/${params.title!}/${
-                    getChapterLink({
-                      chapterIndex: chapterIndex + 1,
-                      chapterTitleText: section.titleTexts?.join("-"),
-                    })
-                  }`}
-                >
-                  <RenderTitle key={chapterIndex} value={section.titleTexts} />
-                </Link>
-              </li>
-            );
-          })
-          : null}
-      </ul>
-    </Main>
+        <ul>
+          {content.tableOfContents
+            ? content.tableOfContents.map((section, chapterIndex) => {
+              return (
+                <li key={chapterIndex}>
+                  <Link to={section.link}>
+                    <RenderTitle
+                      key={chapterIndex}
+                      value={section.titleTexts}
+                    />
+                  </Link>
+                </li>
+              );
+            })
+            : null}
+        </ul>
+      </Main>
+    </>
   );
 }
 

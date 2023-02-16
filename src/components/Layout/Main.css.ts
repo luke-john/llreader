@@ -9,5 +9,5 @@ export const main = style({
   padding: "0 0.5rem",
   width: "100%",
   maxWidth: "31.5rem",
-  margin: "3rem auto 6rem",
+  margin: "0 auto 6rem",
 });

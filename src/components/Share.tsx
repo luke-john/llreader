@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import QRCode from "react-qr-code";
-import { Book } from "../library";
+import { Book } from "../bookstore/library";
 
 export function Share({ book }: { book: Book }) {
   const [shareCode, setShareCode] = useState<string | undefined>(undefined);

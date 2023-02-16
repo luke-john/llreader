@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { loadBook } from "./_index";
+import { loadBook } from "../bookstore/addBook";
 
 export function LoadFile() {
   const params = useParams<{ code: string }>();
@@ -53,5 +53,5 @@ async function loadFile(code: string) {
   const file = new File([responseBlob], "unknown-file.fb2", {
     type: "application/x-fictionbook+xml",
   });
-  await loadBook(file);
+  await loadBook({ format: "fb2", file });
 }
